@@ -1,0 +1,8 @@
+name = " Editorial Calendar"
+description = "Editorial Calendar for Druplug"
+core = "7.x"
+package = Druplug
+dependencies[] = restful
+dependencies[] = libraries
+scripts[] = js/editorial_cal.js
+stylesheets[all][] = css/editorial_cal.css

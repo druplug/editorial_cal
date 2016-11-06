@@ -1,0 +1,78 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function editorial_cal_menu() {
+  $items = array();
+
+  $items['calendar'] = array(
+    'title' => 'Editorial Calendar',
+    'page callback' => 'editorial_cal_view',
+    'type' => MENU_SUGGESTED_ITEM,
+    'access callback' => 'editorial_cal_access',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements access callback
+ */
+function editorial_cal_access() {
+  global $user;
+
+  if (in_array('administrator', $user->roles)) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Page callback for /calendar.
+ */
+function editorial_cal_view() {
+  drupal_add_js('https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.2/moment.min.js', 'external');
+  libraries_load('fullcalendar');
+  $build['calendar'] = [ '#markup' => theme('editorial_calendar',[]) ];
+  return $build;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function editorial_cal_theme() {
+  return [
+    'editorial_calendar' => [
+      'variables' => [],
+      'template' => 'editorial-calendar'
+    ],
+  ];
+}
+
+/**
+ * Implements hook_libraries_info().
+ */
+function editorial_cal_libraries_info() {
+  $libraries['fullcalendar'] = array(
+    'name' => 'Full Calendar',
+    'vendor url' => 'https://fullcalendar.io/',
+    'download url' => 'https://fullcalendar.io/download/',
+    'version arguments' => array(
+      'file' => 'fullcalendar.min.js',
+      'pattern' => '/FullCalendar v(\d+\.+\d+)/',
+      'lines' => 2,
+    ),
+    'files' => array(
+      'js' => array(
+        'fullcalendar.min.js' => array(
+          'scope' => 'footer',
+        ),
+      ),
+      'css' => array(
+        'fullcalendar.min.css',
+      ),
+    ),
+  );
+  return $libraries;
+}
