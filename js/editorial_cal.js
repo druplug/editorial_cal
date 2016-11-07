@@ -13,24 +13,18 @@
 		height: get_calendar_height(),
 		header: false,
 		eventLimit: true,
-		events: [{
-		    title: 'IT Meeting',
-		    start: currentYear + '-' + currentMonth + '-01',
-		},{
-		    title: 'Lunch Catered by Jimmy Johns',
-		    start: currentYear + '-' + currentMonth + '-26',
-		},{
-		    title: 'First Email Blast',
-		    start: currentYear + '-' + currentMonth + '-18',
-		},{
-		    title: 'Adobe Conference',
-		    start: currentYear + '-' + currentMonth + '-07',
-		    end: currentYear + '-' + currentMonth + '-10',
-		},{
-		    title: 'Bob Long Visiting',
-		    start: currentYear + '-' + currentMonth + '-29',
-		    end: currentYear + '-' + currentMonth + '-31',
-		},],
+                eventClick:  function(event, jsEvent, view) {
+                    $('#modalTitle').html(event.title);
+                    $('#modalBody').html(event.description);
+                    $('#eventUrl').attr('href',event.url);
+                    $('#fullCalModal').modal();
+                    return false;
+                },
+		events: {
+		    url: 'https://gist.githubusercontent.com/badri/efd6492ecb436bee19cd1aeec84188a7/raw/62812734d2b05e1239fcbca39fcb317cc6c770cc/events.json',
+		    color: 'yellow',
+		    textColor: 'black',
+		},
 
 	    });
 
