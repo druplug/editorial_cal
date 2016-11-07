@@ -13,6 +13,8 @@
 		height: get_calendar_height(),
 		header: false,
 		eventLimit: true,
+		editable: true,
+		droppable: true,
                 eventClick:  function(event, jsEvent, view) {
                     $('#modalTitle').html(event.title);
                     $('#modalBody').html(event.description);
@@ -20,6 +22,12 @@
                     $('#fullCalModal').modal();
                     return false;
                 },
+		dayClick:  function(date, jsEvent, view) {
+		    console.log('Clicked on: ' + date.format());
+		},
+		eventDrop:  function( event, delta) {
+		    console.log(event.title + " was dropped on " + event.start.format());
+		},
 		events: {
 		    url: 'https://gist.githubusercontent.com/badri/efd6492ecb436bee19cd1aeec84188a7/raw/62812734d2b05e1239fcbca39fcb317cc6c770cc/events.json',
 		    color: 'yellow',
