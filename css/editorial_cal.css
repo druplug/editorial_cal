@@ -122,3 +122,15 @@
 .fc-day-grid-event:hover {
 	background: #E9E9E9;
 }
+
+div.view-unscheduled-posts .fc-event {
+    cursor: pointer;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+div.view-unscheduled-posts {
+    overflow-y: scroll;
+    max-height: 430px;
+}
