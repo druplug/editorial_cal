@@ -20,6 +20,14 @@ function editorial_cal_menu() {
     'access callback' => 'editorial_cal_access',
   );
 
+  $items['drafts/%'] = array(
+    'title' => 'Get Drafts',
+    'page callback' => 'editorial_cal_drafts',
+    'page arguments' => array(1),
+    'access callback' => 'editorial_cal_access',
+    'type' => MENU_LOCAL_TASK,
+  );
+
   return $items;
 }
 
@@ -136,10 +144,37 @@ function editorial_cal_libraries_info() {
   return $libraries;
 }
 
-function editoral_cal_query_scheduled_posts_alter(QueryAlterableInterface $query) {
-  $query->leftJoin('scheduler', 'scheduler', 'scheduler.nid = node.nid');
+function editorial_cal_drafts($tid) {
+  $drafts = _editorial_cal_get_scheduled_drafts_json($tid);
+  drupal_add_http_header('Content-Type', 'application/json');
+  echo $drafts;
+  drupal_exit();
 }
 
+function _editorial_cal_get_scheduled_drafts_json($tid) {
+  $json_dump = [];
+  $query = db_select('node', 'n');
+  $query->join('scheduler', 'sc', 'sc.nid = n.nid');
+  $query->fields('n', ['nid', 'title'])
+    ->fields('sc', ['publish_on'])
+    ->condition('n.status', 0, '=');
+
+  $query->join('field_data_field_featured_categories', 'cat', 'cat.entity_id = n.nid');
+  $query->condition('cat.field_featured_categories_tid', $tid, '=');
+
+  $results = $query->execute();
+
+  while($record = $results->fetchAssoc()) {
+    $row = [
+      'title' => $record['title'],
+      'start' => date('Y-m-d H:i', $record['publish_on']),
+      'url' => 'node/' . $record['nid'] . '/edit',
+      'description' => $record['title'],
+    ];
+    $json_dump[] = $row;
+  }
+  return json_encode($json_dump, JSON_UNESCAPED_SLASHES);
+}
 
 /**
  * Provide a form for an example ajax modal button

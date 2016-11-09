@@ -55,7 +55,7 @@
 		    console.log($(this).find('span.post-title').text() + " dropped on: " + date.format());
 		},
 		events: {
-		    url: 'https://gist.githubusercontent.com/badri/efd6492ecb436bee19cd1aeec84188a7/raw/62812734d2b05e1239fcbca39fcb317cc6c770cc/events.json',
+		    url: Drupal.settings.basePath + 'drafts/2',
 		    color: '#f1c40f',
 		    textColor: '#2c3e50',
 		},
