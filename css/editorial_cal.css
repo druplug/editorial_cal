@@ -87,8 +87,6 @@
 }
 
 .fc-title {
-	color: #636363;
-	font-size: 13px;
 	font-weight: normal;
 	padding: 3px;
 	padding-top: 6px;
@@ -122,15 +120,21 @@
 .fc-day-grid-event:hover {
 	background: #E9E9E9;
 }
+div.view-unscheduled-posts {
+    padding: 20px;
+}
 
 div.view-unscheduled-posts .fc-event {
     cursor: pointer;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding: 10px;
     margin-bottom: 10px;
 }
 
 div.view-unscheduled-posts {
     overflow-y: scroll;
     max-height: 430px;
+}
+
+#calendar table {
+    margin-bottom: 0px;
 }

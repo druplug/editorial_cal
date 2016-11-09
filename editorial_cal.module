@@ -13,6 +13,13 @@ function editorial_cal_menu() {
     'access callback' => 'editorial_cal_access',
   );
 
+  $items['editorial_cal/%ctools_js/add'] = array(
+    'title' => 'Add',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('editorial_cal_create_post_form', 1),
+    'access callback' => 'editorial_cal_access',
+  );
+
   return $items;
 }
 
@@ -29,15 +36,64 @@ function editorial_cal_access() {
 }
 
 /**
+ * Form constructor for the hours add form.
+ */
+function editorial_cal_create_post_form($form, &$form_state, $js) {
+  global $user;
+  $node = (object) array(
+    'uid' => $user->uid,
+    'name' => (isset($user->name) ? $user->name : ''),
+    'type' => 'panopoly_page',
+    'language' => LANGUAGE_NONE,
+  );
+
+  $form_state['ajax'] = $js;
+  if (!empty($_POST['post_scheduled_date'])) {
+    $post_scheduled_date = $_POST['post_scheduled_date'];
+  }
+  $form_state['build_info']['args'] = array($node);
+  form_load_include($form_state, 'inc', 'node', 'node.pages');
+  ctools_include('modal');
+  $output = ctools_modal_form_wrapper('panopoly_page_node_form', $form_state);
+  if (!$js) {
+    return $output;
+  }
+
+  $commands = $output;
+  if (!empty($form_state['executed'])) {
+    ctools_include('ajax');
+    $commands = array(
+      ctools_modal_command_dismiss(),
+      array(
+        'command' => 'schedule_post_reload',
+      ),
+    );
+  }
+  print ajax_render($commands);
+  drupal_exit();
+}
+
+/**
  * Page callback for /calendar.
  */
 function editorial_cal_view() {
   drupal_add_js('https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.2/moment.min.js', 'external');
   drupal_add_js('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js', 'external');
   drupal_add_css('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css', 'external');
-  drupal_add_js('http://code.jquery.com/ui/1.12.1/jquery-ui.min.js', 'external');
+  drupal_add_js('http://code.jquery.com/ui/1.10.2/jquery-ui.min.js', 'external');
   libraries_load('fullcalendar');
-  $build['calendar'] = [ '#markup' => theme('editorial_calendar',[]) ];
+  drupal_add_js(drupal_get_path('module', 'editorial_cal') . '/js/editorial_cal.js');
+  drupal_add_css(drupal_get_path('module', 'editorial_cal') . '/css/editorial_cal.css');
+
+  // Include the CTools tools that we need.
+  ctools_include('ajax');
+  ctools_include('modal');
+
+  // Add CTools' javascript to the page.
+  ctools_modal_add_js();
+
+  $button_form = editorial_cal_ajax_button_form();
+  $build['calendar'] = [ '#markup' => theme('editorial_calendar',['button' => drupal_render($button_form)]) ];
   return $build;
 }
 
@@ -47,7 +103,7 @@ function editorial_cal_view() {
 function editorial_cal_theme() {
   return [
     'editorial_calendar' => [
-      'variables' => [],
+      'variables' => ['button' => NULL],
       'template' => 'editorial-calendar'
     ],
   ];
@@ -78,4 +134,33 @@ function editorial_cal_libraries_info() {
     ),
   );
   return $libraries;
+}
+
+function editoral_cal_query_scheduled_posts_alter(QueryAlterableInterface $query) {
+  $query->leftJoin('scheduler', 'scheduler', 'scheduler.nid = node.nid');
+}
+
+
+/**
+ * Provide a form for an example ajax modal button
+ */
+function editorial_cal_ajax_button_form() {
+  $form = array();
+
+  $form['url'] = array(
+    '#type' => 'hidden',
+    // The name of the class is the #id of $form['ajax_button'] with "-url"
+    // suffix.
+    '#attributes' => array('class' => array('editorial-cal-ajax-button-url')),
+    '#value' => url('editorial_cal/nojs/add'),
+  );
+
+  $form['ajax_button'] = array(
+    '#type' => 'button',
+    '#value' => 'Wizard (button modal)',
+    '#attributes' => array('class' => array('ctools-use-modal')),
+    '#id' => 'editorial-cal-ajax-button',
+  );
+
+  return $form;
 }

@@ -2,6 +2,10 @@
     Drupal.behaviors.editorialCal = {
 	attach: function (context, settings) {
 
+	    Drupal.ajax.prototype.commands.schedule_post_reload = function (ajax, data, status) {
+		location.reload();
+	    };
+
 	    $('div.view-unscheduled-posts .fc-event').each(function() {
 
 		// store data so the calendar knows to render an event upon drop
@@ -52,8 +56,8 @@
 		},
 		events: {
 		    url: 'https://gist.githubusercontent.com/badri/efd6492ecb436bee19cd1aeec84188a7/raw/62812734d2b05e1239fcbca39fcb317cc6c770cc/events.json',
-		    color: 'yellow',
-		    textColor: 'black',
+		    color: '#f1c40f',
+		    textColor: '#2c3e50',
 		},
 
 	    });
