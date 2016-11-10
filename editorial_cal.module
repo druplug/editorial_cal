@@ -52,7 +52,6 @@ function editorial_cal_menu() {
  */
 function editorial_cal_access() {
   global $user;
-
   if (in_array('administrator', $user->roles)) {
     return TRUE;
   }
@@ -217,6 +216,31 @@ function editorial_cal_add_draft_form($form, &$form_state, $timestamp) {
     '#default_value' => array_key_exists('ts', $form_state)?$form_state['ts']:$timestamp,
   );
 
+  $form['description'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Description'),
+    '#rows' => 2,
+  );
+
+  $results = db_query("SELECT tid, name FROM {taxonomy_term_data} WHERE vid = 1")->fetchAll();
+
+  $options = array();
+
+  foreach($results  as $key => $term){
+    $options[$term->tid] = $term->name;
+  }
+
+  $form['category'] = array(
+    '#type' => 'select',
+    '#title' => t('Category'),
+    '#options' => $options,
+  );
+
+  $form['scheduled_time'] = array(
+    '#title' => t('Timefield'),
+    '#type' => 'timefield',
+  );
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Create Draft'),
@@ -233,9 +257,9 @@ function editorial_cal_add_draft_form_submit($form, &$form_state) {
   $node->language = LANGUAGE_NONE;
   $node->uid = $user->uid;
   $node->status = 0;
-  $node->field_featured_categories[$node->language][]['tid'] = 2;
-  $node->body[$node->language][]['value'] = 'Ex unde eligendi tortor pretium possimus nec totam? Quam euismod.';
-  $node->publish_on = strtotime($form_state['values']['timestamp']);
+  $node->field_featured_categories[$node->language][]['tid'] = $form_state['values']['category'];
+  $node->body[$node->language][]['value'] = $form_state['values']['description'];
+  $node->publish_on = strtotime($form_state['values']['timestamp']) + $form_state['values']['scheduled_time']['value'];
   $node = node_submit($node);
   node_save($node);
 }

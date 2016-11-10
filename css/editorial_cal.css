@@ -138,3 +138,7 @@ div.view-unscheduled-posts {
 #calendar table {
     margin-bottom: 0px;
 }
+
+.ui-timepicker-table td a {
+    width: 25px;
+}

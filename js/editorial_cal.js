@@ -2,9 +2,21 @@
     Drupal.behaviors.editorialCal = {
 	attach: function (context, settings) {
 
+	    var event_sources = [
+		    {
+			url: Drupal.settings.basePath + 'drafts/2',
+			color: '#f1c40f',
+			textColor: '#2c3e50',
+		    },
+		    {
+			url: Drupal.settings.basePath + 'drafts/12',
+			color: '#c0392b',
+			textColor: '#fff',
+		    }
+	    ];
 	    Drupal.ajax.prototype.commands.schedule_post_reload = function (ajax, data, status) {
 		//location.reload();
-		$('#calendar').fullCalendar( 'refetchEvents');
+		$('#calendar').fullCalendar('refetchEventSources', event_sources);
 	    };
 
 	    $('div.view-unscheduled-posts .fc-event').each(function() {
@@ -71,17 +83,7 @@
 		    });
 		    $(ajax.element).trigger('editorial_cal_event_drop');
 		},
-		drop: function(date) {
-		    $(this).remove();
-		    $event = $(this).find('span.post-title');
-		    console.log($event.text() + " with nid " + $event.data('nid') + " dropped on: " + date.format());
-		},
-		events: {
-		    url: Drupal.settings.basePath + 'drafts/2',
-		    color: '#f1c40f',
-		    textColor: '#2c3e50',
-		},
-
+		eventSources: event_sources
 	    });
 
 	    $(window).resize(function() {
