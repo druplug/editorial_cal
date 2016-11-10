@@ -14,10 +14,11 @@ function editorial_cal_menu() {
   );
 
   $items['editorial_cal/%ctools_js/add'] = array(
-    'title' => 'Add',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('editorial_cal_create_post_form', 1),
+    'title' => 'Add New Draft',
+    'page callback' => 'editorial_cal_create_post_form',
+    'page arguments' => array(1),
     'access callback' => 'editorial_cal_access',
+      'type' => MENU_CALLBACK,
   );
 
   $items['drafts/%'] = array(
@@ -26,6 +27,14 @@ function editorial_cal_menu() {
     'page arguments' => array(1),
     'access callback' => 'editorial_cal_access',
     'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['calform'] = array(
+    'title' => 'Example Form',
+    'description' => 'A form to mess around with.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('editorial_cal_add_draft_form', '2016-11-08'),
+    'access callback' => 'editorial_cal_access',
   );
 
   return $items;
@@ -46,26 +55,21 @@ function editorial_cal_access() {
 /**
  * Form constructor for the hours add form.
  */
-function editorial_cal_create_post_form($form, &$form_state, $js) {
-  global $user;
-  $node = (object) array(
-    'uid' => $user->uid,
-    'name' => (isset($user->name) ? $user->name : ''),
-    'type' => 'panopoly_page',
-    'language' => LANGUAGE_NONE,
-  );
-
-  $form_state['ajax'] = $js;
-  if (!empty($_POST['post_scheduled_date'])) {
-    $post_scheduled_date = $_POST['post_scheduled_date'];
-  }
-  $form_state['build_info']['args'] = array($node);
-  form_load_include($form_state, 'inc', 'node', 'node.pages');
-  ctools_include('modal');
-  $output = ctools_modal_form_wrapper('panopoly_page_node_form', $form_state);
+function editorial_cal_create_post_form($js = NULL) {
   if (!$js) {
-    return $output;
+    return drupal_get_form('editorial_cal_add_draft_form', date('Y-m-d'));
   }
+  ctools_include('modal');
+  ctools_include('ajax');
+  $form_state = array(
+    'title' => t('Add New Draft'),
+    'ajax' => TRUE,
+    'ts' => $_POST['post_scheduled_date'],
+  );
+  if (!empty($_POST['post_scheduled_date'])) {
+    $form_state['build_info']['args'] = [ $_POST['post_scheduled_date']];
+  }
+  $output = ctools_modal_form_wrapper('editorial_cal_add_draft_form', $form_state);
 
   $commands = $output;
   if (!empty($form_state['executed'])) {
@@ -100,8 +104,7 @@ function editorial_cal_view() {
   // Add CTools' javascript to the page.
   ctools_modal_add_js();
 
-  $button_form = editorial_cal_ajax_button_form();
-  $build['calendar'] = [ '#markup' => theme('editorial_calendar',['button' => drupal_render($button_form)]) ];
+  $build['calendar'] = [ '#markup' => theme('editorial_calendar',[]) ];
   return $build;
 }
 
@@ -176,26 +179,43 @@ function _editorial_cal_get_scheduled_drafts_json($tid) {
   return json_encode($json_dump, JSON_UNESCAPED_SLASHES);
 }
 
-/**
- * Provide a form for an example ajax modal button
- */
-function editorial_cal_ajax_button_form() {
+
+function editorial_cal_add_draft_form($form, &$form_state, $timestamp) {
   $form = array();
 
-  $form['url'] = array(
-    '#type' => 'hidden',
-    // The name of the class is the #id of $form['ajax_button'] with "-url"
-    // suffix.
-    '#attributes' => array('class' => array('editorial-cal-ajax-button-url')),
-    '#value' => url('editorial_cal/nojs/add'),
+  $form['title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Title'),
   );
 
-  $form['ajax_button'] = array(
-    '#type' => 'button',
-    '#value' => 'Wizard (button modal)',
-    '#attributes' => array('class' => array('ctools-use-modal')),
-    '#id' => 'editorial-cal-ajax-button',
+  $form['timestamp'] = array(
+    '#type' => 'textfield',
+    '#default_value' => array_key_exists('ts', $form_state)?$form_state['ts']:$timestamp,
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Create Draft'),
   );
 
   return $form;
+}
+
+function editorial_cal_add_draft_form_submit($form, &$form_state) {
+  global $user;
+  $node = new stdClass();
+  $node->title = $form_state['values']['title'];
+  $node->type = 'panopoly_page';
+  $node->language = LANGUAGE_NONE;
+  $node->uid = $user->uid;
+  $node->status = 0;
+  $node->field_featured_categories[$node->language][]['tid'] = 2;
+  $node->body[$node->language][]['value'] = 'Ex unde eligendi tortor pretium possimus nec totam? Quam euismod.';
+  $node = node_submit($node);
+  node_save($node);
+  db_insert('scheduler')->fields(array(
+      'nid' => $node->nid,
+      'publish_on' => strtotime($form_state['values']['timestamp']),
+      'unpublish_on' => 0,
+    ))->execute();
 }

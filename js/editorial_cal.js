@@ -3,7 +3,8 @@
 	attach: function (context, settings) {
 
 	    Drupal.ajax.prototype.commands.schedule_post_reload = function (ajax, data, status) {
-		location.reload();
+		//location.reload();
+		$('#calendar').fullCalendar( 'refetchEvents');
 	    };
 
 	    $('div.view-unscheduled-posts .fc-event').each(function() {
@@ -46,6 +47,17 @@
                 },
 		dayClick:  function(date, jsEvent, view) {
 		    console.log('Clicked on: ' + date.format());
+		    var ajax = new Drupal.ajax('calendar', $('#calendar'), {
+			event: 'editorial_cal_add',
+			url: Drupal.settings.basePath + 'editorial_cal/nojs/add',
+			submit: {
+			    post_scheduled_date: date.format()
+			}
+		    });
+		    $(ajax.element)
+			.bind('editorial_cal_add', Drupal.CTools.Modal.clickAjaxLink)
+			.trigger('editorial_cal_add');
+
 		},
 		eventDrop:  function( event, delta) {
 		    console.log(event.title + " was dropped on " + event.start.format());
