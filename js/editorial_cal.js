@@ -60,11 +60,21 @@
 
 		},
 		eventDrop:  function( event, delta) {
-		    console.log(event.title + " was dropped on " + event.start.format());
+		    console.log(event.nid + " was dropped on " + event.start.format());
+		    var ajax = new Drupal.ajax('calendar', $('#calendar'), {
+			event: 'editorial_cal_event_drop',
+			url: Drupal.settings.basePath + 'editorial_cal/event_drop',
+			submit: {
+			    post_scheduled_date: event.start.format(),
+			    post_id: event.nid
+			}
+		    });
+		    $(ajax.element).trigger('editorial_cal_event_drop');
 		},
 		drop: function(date) {
 		    $(this).remove();
-		    console.log($(this).find('span.post-title').text() + " dropped on: " + date.format());
+		    $event = $(this).find('span.post-title');
+		    console.log($event.text() + " with nid " + $event.data('nid') + " dropped on: " + date.format());
 		},
 		events: {
 		    url: Drupal.settings.basePath + 'drafts/2',

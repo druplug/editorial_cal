@@ -18,7 +18,14 @@ function editorial_cal_menu() {
     'page callback' => 'editorial_cal_create_post_form',
     'page arguments' => array(1),
     'access callback' => 'editorial_cal_access',
-      'type' => MENU_CALLBACK,
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['editorial_cal/event_drop'] = array(
+    'title' => 'Move posts within calendar',
+    'page callback' => 'editorial_cal_event_drop',
+    'access callback' => 'editorial_cal_access',
+    'type' => MENU_CALLBACK,
   );
 
   $items['drafts/%'] = array(
@@ -50,6 +57,22 @@ function editorial_cal_access() {
     return TRUE;
   }
   return FALSE;
+}
+
+
+function editorial_cal_event_drop() {
+  $scheduled_date = $_POST['post_scheduled_date'];
+  $nid = $_POST['post_id'];
+  $node = node_load($nid);
+  $node->publish_on = strtotime($scheduled_date);
+  node_save($node);
+  $commands = array(
+    array(
+      'command' => 'schedule_post_reload',
+    ),
+  );
+  print ajax_render($commands);
+  drupal_exit();
 }
 
 /**
@@ -171,6 +194,7 @@ function _editorial_cal_get_scheduled_drafts_json($tid) {
     $row = [
       'title' => $record['title'],
       'start' => date('Y-m-d H:i', $record['publish_on']),
+      'nid' => $record['nid'],
       'url' => 'node/' . $record['nid'] . '/edit',
       'description' => $record['title'],
     ];
@@ -211,11 +235,7 @@ function editorial_cal_add_draft_form_submit($form, &$form_state) {
   $node->status = 0;
   $node->field_featured_categories[$node->language][]['tid'] = 2;
   $node->body[$node->language][]['value'] = 'Ex unde eligendi tortor pretium possimus nec totam? Quam euismod.';
+  $node->publish_on = strtotime($form_state['values']['timestamp']);
   $node = node_submit($node);
   node_save($node);
-  db_insert('scheduler')->fields(array(
-      'nid' => $node->nid,
-      'publish_on' => strtotime($form_state['values']['timestamp']),
-      'unpublish_on' => 0,
-    ))->execute();
 }
