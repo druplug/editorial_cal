@@ -187,6 +187,9 @@ function _editorial_cal_get_scheduled_drafts_json($tid) {
   $query->join('field_data_field_featured_categories', 'cat', 'cat.entity_id = n.nid');
   $query->condition('cat.field_featured_categories_tid', $tid, '=');
 
+  $query->join('field_data_body', 'body', 'body.entity_id = n.nid');
+  $query->fields('body', ['body_value']);
+
   $results = $query->execute();
 
   while($record = $results->fetchAssoc()) {
@@ -195,7 +198,7 @@ function _editorial_cal_get_scheduled_drafts_json($tid) {
       'start' => date('Y-m-d H:i', $record['publish_on']),
       'nid' => $record['nid'],
       'url' => 'node/' . $record['nid'] . '/edit',
-      'description' => $record['title'],
+      'description' => $record['body_value'],
     ];
     $json_dump[] = $row;
   }

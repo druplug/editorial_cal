@@ -142,3 +142,7 @@ div.view-unscheduled-posts {
 .ui-timepicker-table td a {
     width: 25px;
 }
+
+.fc-unthemed .fc-today {
+    background-color: #e26a6a;
+}
